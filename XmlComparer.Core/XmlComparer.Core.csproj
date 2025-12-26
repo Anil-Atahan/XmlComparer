@@ -8,7 +8,7 @@
     
     <!-- NuGet Metadata -->
     <PackageId>ANL.XmlComparer</PackageId>
-    <Version>2.0.0</Version>
+    <Version>2.0.1</Version>
     <Authors>Anıl Atahan</Authors>
     <Company>XmlComparer</Company>
     <Description>Structural XML diff for .NET with HTML + JSON reports and schema validation.</Description>
