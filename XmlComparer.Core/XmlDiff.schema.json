@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "XmlComparer Diff Envelope",
+  "type": "object",
+  "properties": {
+    "Validation": {
+      "type": "object",
+      "properties": {
+        "IsValid": { "type": "boolean" },
+        "Errors": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "Message": { "type": "string" },
+              "LineNumber": { "type": "integer" },
+              "LinePosition": { "type": "integer" }
+            },
+            "required": [ "Message", "LineNumber", "LinePosition" ]
+          }
+        }
+      },
+      "required": [ "IsValid", "Errors" ]
+    },
+    "Summary": {
+      "type": "object",
+      "properties": {
+        "Total": { "type": "integer" },
+        "Unchanged": { "type": "integer" },
+        "Added": { "type": "integer" },
+        "Deleted": { "type": "integer" },
+        "Modified": { "type": "integer" },
+        "Moved": { "type": "integer" }
+      },
+      "required": [ "Total", "Unchanged", "Added", "Deleted", "Modified", "Moved" ]
+    },
+    "Diff": {
+      "type": "object",
+      "properties": {
+        "Name": { "type": "string" },
+        "Path": { "type": "string" },
+        "Type": { "type": "string", "enum": [ "Unchanged", "Added", "Deleted", "Modified", "Moved" ] },
+        "OriginalAttributes": { "type": "object", "additionalProperties": { "type": "string" } },
+        "NewAttributes": { "type": "object", "additionalProperties": { "type": "string" } },
+        "OriginalValue": { "type": "string" },
+        "NewValue": { "type": "string" },
+        "Children": {
+          "type": "array",
+          "items": { "$ref": "#/properties/Diff" }
+        }
+      },
+      "required": [ "Name", "Path", "Type" ]
+    }
+  },
+  "required": [ "Diff" ]
+}

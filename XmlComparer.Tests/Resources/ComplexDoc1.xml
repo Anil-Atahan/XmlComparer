@@ -1,0 +1,41 @@
+<company xmlns="urn:company" name="Acme Corp" version="1.0">
+  <metadata>
+    <created>2024-01-01</created>
+    <owner>Operations</owner>
+  </metadata>
+  <departments>
+    <department id="HR">
+      <name>Human Resources</name>
+      <employees>
+        <employee id="E100" role="Manager">
+          <fullName>Alice Smith</fullName>
+          <projects>
+            <project code="HR-01" status="active" />
+          </projects>
+        </employee>
+        <employee id="E101" role="Recruiter">
+          <fullName>Bob Lane</fullName>
+        </employee>
+      </employees>
+    </department>
+    <department id="ENG">
+      <name>Engineering</name>
+      <employees>
+        <employee id="E200" role="Lead">
+          <fullName>Carol Diaz</fullName>
+          <projects>
+            <project code="ENG-01" status="active" />
+            <project code="ENG-02" status="paused" />
+          </projects>
+        </employee>
+        <employee id="E201" role="Developer">
+          <fullName>Dan Wu</fullName>
+        </employee>
+      </employees>
+    </department>
+  </departments>
+  <settings>
+    <setting key="Theme">Light</setting>
+    <setting key="Notifications">Enabled</setting>
+  </settings>
+</company>

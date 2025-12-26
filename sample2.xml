@@ -1,0 +1,997 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Sample XML File 2 - Modified Configuration
+    This file demonstrates various types of changes from sample1.xml:
+    - MODIFIED: Attribute values changed (version, environment, timestamps)
+    - MODIFIED: Nested values updated (cache-ttl, feature flags)
+    - MODIFIED: Element content changed (descriptions, prices, inventory)
+    - ADDED: New API endpoint, new feature flag, new warehouse location
+    - DELETED: customer CUST-003 removed
+    - MODIFIED: Namespace changes (v3 namespace added)
+    - MODIFIED: Category structure changed ( Tablets promoted to main level)
+    - MODIFIED: Product details (prices reduced, specs upgraded, inventory changed)
+    - DELETED: Product PRD-004 removed from catalog
+    - ADDED: New products PRD-009, PRD-010, PRD-011
+    - MODIFIED: Customer tier upgrade (platinum)
+    - ADDED: New customer CUST-004
+    - MODIFIED: Promotion details changed
+-->
+<ecommerce-platform
+    xmlns="http://example.com/ecommerce"
+    xmlns:v3="http://example.com/ecommerce/v3"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://example.com/ecommerce schema-v3.xsd"
+    version="2.6.0"
+    environment="staging"
+    deployment-region="us-east-1">
+
+    <!-- =============================================
+         CONFIGURATION SECTION - MODIFIED
+    ============================================= -->
+    <configuration id="cfg-001" timestamp="2024-01-20T14:45:30.456Z">
+        <system-settings>
+            <setting name="max-concurrent-users" type="integer">15000</setting>
+            <!-- MODIFIED: cache TTL increased -->
+            <setting name="cache-ttl" type="integer">7200</setting>
+            <setting name="enable-logging" type="boolean">true</setting>
+            <setting name="log-level" type="string">DEBUG</setting>
+            <setting name="retry-attempts" type="integer">5</setting>
+            <setting name="timeout-ms" type="integer">45000</setting>
+            <setting name="decimal-precision" type="integer">4</setting>
+            <!-- MODIFIED: Empty value now has content -->
+            <setting name="custom-header" type="string">X-Custom-Value</setting>
+            <setting name="api-key" type="encrypted">BwIDBAUGBwgJCgsMDQ4PEBESExQVFhcYGRobHB0eHyA=</setting>
+            <setting name="display-name" type="string">E-Commerce Platform 2.0 🛍</setting>
+            <!-- ADDED: New setting -->
+            <setting name="enable-caching" type="boolean">true</setting>
+        </system-settings>
+
+        <feature-flags>
+            <!-- MODIFIED: Feature enabled -->
+            <feature name="new-checkout" enabled="true" rollout-percentage="25"/>
+            <feature name="express-delivery" enabled="true" rollout-percentage="100"/>
+            <!-- MODIFIED: Rollback percentage increased -->
+            <feature name="ai-recommendations" enabled="true" rollout-percentage="85"/>
+            <feature name="crypto-payment" enabled="true" rollout-percentage="5"/>
+            <feature name="voice-search" enabled="true" rollout-percentage="75"/>
+            <feature name="ar-preview" enabled="true" rollout-percentage="25"/>
+            <!-- ADDED: New feature -->
+            <feature name="social-login" enabled="true" rollout-percentage="50"/>
+            <feature name="dark-mode" enabled="true" rollout-percentage="100"/>
+        </feature-flags>
+
+        <api-endpoints>
+            <service name="user-service">
+                <endpoint path="/api/users" method="GET" authenticated="true" rate-limited="true">
+                    <parameters>
+                        <parameter name="page" type="integer" required="false" default="1"/>
+                        <parameter name="size" type="integer" required="false" default="50"/>
+                        <parameter name="sort" type="enum" required="false" default="name:asc">
+                            <value>name:asc</value>
+                            <value>name:desc</value>
+                            <value>date:asc</value>
+                            <value>date:desc</value>
+                            <!-- ADDED: New sort option -->
+                            <value>relevance:desc</value>
+                        </parameter>
+                    </parameters>
+                    <response-format>application/json</response-format>
+                    <caching enabled="true" ttl="300"/>
+                    <throttling max-requests="2000" per-second="200"/>
+                </endpoint>
+                <endpoint path="/api/users" method="POST" authenticated="true" rate-limited="true">
+                    <parameters>
+                        <parameter name="email" type="email" required="true"/>
+                        <parameter name="password" type="password" required="true" min-length="8"/>
+                        <parameter name="name" type="string" required="true" max-length="100"/>
+                        <!-- ADDED: New parameter -->
+                        <parameter name="phone" type="phone" required="false"/>
+                    </parameters>
+                    <validation-rules>
+                        <rule field="email" regex="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"/>
+                        <rule field="password" regex="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&amp;])[A-Za-z\d@$!%*?&amp;]{8,}$"/>
+                        <!-- ADDED: New validation rule -->
+                        <rule field="phone" regex="^\+?[\d\s\-\(\)]+$"/>
+                    </validation-rules>
+                </endpoint>
+                <endpoint path="/api/users/{id}" method="PUT" authenticated="true" rate-limited="true">
+                    <parameters>
+                        <parameter name="id" type="uuid" required="true" in="path"/>
+                    </parameters>
+                </endpoint>
+                <endpoint path="/api/users/{id}" method="DELETE" authenticated="true" rate-limited="true">
+                    <parameters>
+                        <parameter name="id" type="uuid" required="true" in="path"/>
+                    </parameters>
+                    <soft-delete enabled="true" retention-days="90"/>
+                </endpoint>
+                <!-- ADDED: New endpoint -->
+                <endpoint path="/api/users/{id}/profile-picture" method="POST" authenticated="true" rate-limited="true">
+                    <parameters>
+                        <parameter name="id" type="uuid" required="true" in="path"/>
+                        <parameter name="file" type="file" required="true" accept="image/*"/>
+                    </parameters>
+                </endpoint>
+            </service>
+
+            <service name="product-service">
+                <endpoint path="/api/products" method="GET" authenticated="false" rate-limited="true">
+                    <parameters>
+                        <parameter name="category" type="string" required="false"/>
+                        <parameter name="search" type="string" required="false"/>
+                        <parameter name="price-min" type="decimal" required="false"/>
+                        <parameter name="price-max" type="decimal" required="false"/>
+                        <parameter name="in-stock" type="boolean" required="false"/>
+                    </parameters>
+                    <response-format>application/json</response-format>
+                    <caching enabled="true" ttl="600"/>
+                </endpoint>
+                <endpoint path="/api/products/{id}" method="GET" authenticated="false" rate-limited="true">
+                    <parameters>
+                        <parameter name="id" type="uuid" required="true" in="path"/>
+                    </parameters>
+                    <caching enabled="true" ttl="3600"/>
+                </endpoint>
+                <endpoint path="/api/products" method="POST" authenticated="true" rate-limited="true">
+                    <parameters>
+                        <parameter name="name" type="string" required="true" max-length="200"/>
+                        <parameter name="description" type="text" required="true"/>
+                        <parameter name="price" type="decimal" required="true" min="0.01"/>
+                        <parameter name="sku" type="string" required="true" pattern="^[A-Z0-9-]+$"/>
+                        <parameter name="category-id" type="uuid" required="true"/>
+                        <parameter name="tags" type="array" required="false" item-type="string"/>
+                    </parameters>
+                </endpoint>
+            </service>
+
+            <service name="order-service">
+                <endpoint path="/api/orders" method="GET" authenticated="true" rate-limited="true">
+                    <parameters>
+                        <parameter name="status" type="enum" required="false">
+                            <value>pending</value>
+                            <value>processing</value>
+                            <value>shipped</value>
+                            <value>delivered</value>
+                            <value>cancelled</value>
+                            <value>refunded</value>
+                            <!-- ADDED: New status -->
+                            <value>on-hold</value>
+                        </parameter>
+                        <parameter name="date-from" type="date" required="false"/>
+                        <parameter name="date-to" type="date" required="false"/>
+                    </parameters>
+                </endpoint>
+                <endpoint path="/api/orders/{id}/items" method="GET" authenticated="true" rate-limited="true"/>
+            </service>
+
+            <service name="payment-service">
+                <endpoint path="/api/payments" method="POST" authenticated="true" rate-limited="true">
+                    <parameters>
+                        <parameter name="order-id" type="uuid" required="true"/>
+                        <parameter name="amount" type="decimal" required="true" min="0.01"/>
+                        <parameter name="currency" type="enum" required="true">
+                            <value>USD</value>
+                            <value>EUR</value>
+                            <value>GBP</value>
+                            <value>JPY</value>
+                            <value>CAD</value>
+                            <value>AUD</value>
+                            <!-- ADDED: New currency -->
+                            <value>CNY</value>
+                        </parameter>
+                        <parameter name="method" type="enum" required="true">
+                            <value>credit-card</value>
+                            <value>debit-card</value>
+                            <value>paypal</value>
+                            <value>stripe</value>
+                            <value>bank-transfer</value>
+                            <!-- ADDED: New payment method -->
+                            <value>apple-pay</value>
+                        </parameter>
+                    </parameters>
+                    <security pci-dss="true" encryption="TLS-1.3"/>
+                </endpoint>
+                <!-- ADDED: New endpoint -->
+                <endpoint path="/api/payments/{id}/refund" method="POST" authenticated="true" rate-limited="true">
+                    <parameters>
+                        <parameter name="id" type="uuid" required="true" in="path"/>
+                        <parameter name="reason" type="string" required="true"/>
+                        <parameter name="amount" type="decimal" required="true"/>
+                    </parameters>
+                </endpoint>
+            </service>
+        </api-endpoints>
+
+        <embedded-scripts>
+            <script id="validation-script" language="javascript"><![CDATA[
+                // MODIFIED: Enhanced validation function
+                function validateOrder(order) {
+                    if (!order.items || order.items.length === 0) {
+                        throw new Error("Order must contain at least one item");
+                    }
+                    const total = order.items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+                    if (total > 2000000) { // MODIFIED: limit increased
+                        throw new Error("Order total exceeds maximum allowed amount");
+                    }
+                    // ADDED: New validation
+                    if (order.customer && !order.emailVerified) {
+                        throw new Error("Customer email must be verified");
+                    }
+                    return true;
+                }
+            ]]></script>
+            <script id="formatting-script" language="javascript"><![CDATA[
+                function formatCurrency(amount, currency) {
+                    return new Intl.NumberFormat('en-US', {
+                        style: 'currency',
+                        currency: currency
+                    }).format(amount);
+                }
+                // ADDED: New function
+                function formatNumber(num, decimals) {
+                    return num.toFixed(decimals).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+                }
+            ]]></script>
+            <!-- ADDED: New script -->
+            <script id="analytics-script" language="javascript"><![CDATA[
+                // Track page views and user interactions
+                function trackEvent(eventName, properties) {
+                    if (window.analytics) {
+                        window.analytics.track(eventName, properties);
+                    }
+                }
+            ]]></script>
+        </embedded-scripts>
+
+        <?xml-stylesheet type="text/xsl" href="transform-v2.xsl"?>
+        <?target-client ie="block" chrome="enable" firefox="enable" edge="enable"/>
+        <!-- ADDED: New processing instruction -->
+        <?php include "config.php"?>
+    </configuration>
+
+    <!-- =============================================
+         CATALOG SECTION - MODIFIED
+    ============================================= -->
+    <catalog last-synced="2024-01-20T12:00:00Z" total-products="15680" total-categories="298">
+        <!-- Categories - MODIFIED structure -->
+        <categories>
+            <category id="CAT-001" code="ELEC" name="Electronics" slug="electronics" parent-id="" level="1" path="/electronics">
+                <description>Electronic devices, accessories, and components</description>
+                <metadata>
+                    <feature>free-shipping</feature>
+                    <feature>extended-warranty</feature>
+                    <feature>price-match</feature>
+                    <feature>installment-plans</feature>
+                    <!-- ADDED: New feature -->
+                    <feature>price-match-guarantee</feature>
+                </metadata>
+                <seo>
+                    <title>Electronics - Best Deals on Tech &amp; Gadgets</title>
+                    <keywords>electronics, tech, gadgets, devices, computers</keywords>
+                    <description>Shop the latest electronics at unbeatable prices with price match guarantee</description>
+                </seo>
+                <stats>
+                    <product-count active="5680" total="6090"/>
+                    <views-last-month>145890</views-last-month>
+                    <conversion-rate>3.5</conversion-rate>
+                </stats>
+                <subcategories>
+                    <category id="CAT-001-001" code="LAPTOPS" name="Laptops &amp; Notebooks" slug="laptops" parent-id="CAT-001" level="2" path="/electronics/laptops">
+                        <description>Business, gaming, and student laptops</description>
+                        <metadata>
+                            <feature>free-shipping</feature>
+                            <feature>extended-warranty</feature>
+                            <feature>price-match</feature>
+                        </metadata>
+                        <product-count active="1350" total="1450"/>
+                        <brands>
+                            <brand>Dell</brand>
+                            <brand>HP</brand>
+                            <brand>Lenovo</brand>
+                            <brand>Apple</brand>
+                            <brand>Asus</brand>
+                            <brand>MSI</brand>
+                            <brand>Razer</brand>
+                            <!-- ADDED: New brand -->
+                            <brand>Gigabyte</brand>
+                        </brands>
+                        <price-range min="299.99" max="5999.99" avg="1550.00"/>
+                    </category>
+                    <category id="CAT-001-002" code="PHONES" name="Smartphones" slug="smartphones" parent-id="CAT-001" level="2" path="/electronics/smartphones">
+                        <description>Latest mobile phones from top brands</description>
+                        <metadata>
+                            <feature>free-shipping</feature>
+                            <feature>trade-in</feature>
+                        </metadata>
+                        <product-count active="980" total="1050"/>
+                        <brands>
+                            <brand>Apple</brand>
+                            <brand>Samsung</brand>
+                            <brand>Google</brand>
+                            <brand>OnePlus</brand>
+                            <brand>Xiaomi</brand>
+                            <!-- ADDED: New brand -->
+                            <label>Nothing</label>
+                        </brands>
+                        <price-range min="199.99" max="1899.99" avg="720.00"/>
+                    </category>
+                    <category id="CAT-001-003" code="TABLETS" name="Tablets" slug="tablets" parent-id="CAT-001" level="2" path="/electronics/tablets">
+                        <description>iPads, Android tablets, and Windows tablets</description>
+                        <product-count active="520" total="560"/>
+                        <brands>
+                            <brand>Apple</brand>
+                            <brand>Samsung</brand>
+                            <brand>Microsoft</brand>
+                            <brand>Lenovo</brand>
+                        </brands>
+                        <price-range min="149.99" max="1699.99" avg="580.00"/>
+                    </category>
+                    <category id="CAT-001-004" code="AUDIO" name="Audio &amp; Headphones" slug="audio-headphones" parent-id="CAT-001" level="2" path="/electronics/audio">
+                        <description>Headphones, earbuds, speakers, and audio accessories</description>
+                        <product-count active="1380" total="1490"/>
+                        <price-range min="19.99" max="3499.99" avg="195.00"/>
+                    </category>
+                    <category id="CAT-001-005" code="CAMERAS" name="Cameras &amp; Photography" slug="cameras" parent-id="CAT-001" level="2" path="/electronics/cameras">
+                        <description>DSLR, mirrorless, action cameras, and drones</description>
+                        <product-count active="750" total="790"/>
+                        <price-range min="99.99" max="8999.99" avg="920.00"/>
+                    </category>
+                    <category id="CAT-001-006" code="GAMING" name="Gaming" slug="gaming" parent-id="CAT-001" level="2" path="/electronics/gaming">
+                        <description>Consoles, games, and gaming accessories</description>
+                        <product-count active="1250" total="1320"/>
+                        <price-range min="9.99" max="999.99" avg="135.00"/>
+                    </category>
+                </subcategories>
+            </category>
+
+            <!-- ADDED: Tablets promoted to main level -->
+            <category id="CAT-002" code="TABLETS" name="Tablets" slug="tablets" parent-id="" level="1" path="/tablets">
+                <description>Dedicated tablets category - iPads, Android tablets, and more</description>
+                <metadata>
+                    <feature>free-shipping</feature>
+                    <feature>bundle-deals</feature>
+                </metadata>
+                <product-count active="520" total="560"/>
+            </category>
+
+            <category id="CAT-003" code="CLOTH" name="Clothing &amp; Apparel" slug="clothing" parent-id="" level="1" path="/clothing">
+                <description>Fashion clothing for men, women, and kids</description>
+                <metadata>
+                    <feature>free-returns</feature>
+                    <feature>size-guide</feature>
+                </metadata>
+                <product-count active="3450" total="3720"/>
+                <subcategories>
+                    <category id="CAT-003-001" code="MENS" name="Men's Clothing" slug="mens" parent-id="CAT-003" level="2" path="/clothing/mens">
+                        <product-count active="1520" total="1640"/>
+                    </category>
+                    <category id="CAT-003-002" code="WOMENS" name="Women's Clothing" slug="womens" parent-id="CAT-003" level="2" path="/clothing/womens">
+                        <product-count active="1930" total="2080"/>
+                    </category>
+                </subcategories>
+            </category>
+
+            <category id="CAT-004" code="HOME" name="Home &amp; Garden" slug="home-garden" parent-id="" level="1" path="/home-garden">
+                <description>Furniture, decor, appliances, and outdoor items</description>
+                <product-count active="2250" total="2430"/>
+            </category>
+
+            <category id="CAT-005" code="SPORTS" name="Sports &amp; Outdoors" slug="sports-outdoors" parent-id="" level="1" path="/sports-outdoors">
+                <description>Sports equipment, outdoor gear, and fitness</description>
+                <product-count active="1820" total="1970"/>
+            </category>
+
+            <category id="CAT-006" code="BOOKS" name="Books &amp; Media" slug="books-media" parent-id="" level="1" path="/books-media">
+                <description>Books, eBooks, music, movies, and games</description>
+                <product-count active="3150" total="3320"/>
+            </category>
+
+            <!-- ADDED: New category -->
+            <category id="CAT-007" code="SMART" name="Smart Home" slug="smart-home" parent-id="" level="1" path="/smart-home">
+                <description>Smart speakers, smart displays, home automation, and IoT devices</description>
+                <product-count active="890" total="950"/>
+            </category>
+        </categories>
+
+        <!-- Products - MODIFIED -->
+        <products>
+            <!-- Product 1: MODIFIED - Price reduced, specs upgraded, quantity changed -->
+            <product id="PRD-001" sku="DELL-XPS-15-2024-U" category-id="CAT-001-001" featured="true" status="active" created="2023-08-15T10:00:00Z" updated="2024-01-18T10:15:00Z">
+                <name>Dell XPS 15 Laptop</name>
+                <name locale="zh-CN">戴尔 XPS 15 笔记本电脑</name>
+                <name locale="es-ES">Dell XPS 15 Portátil</name>
+                <brand>Dell</brand>
+                <!-- MODIFIED: Description updated -->
+                <description>The ultimate laptop for creators and professionals. Stunning 4K+ OLED display with 100% DCI-P3 color gamut. Now with faster processor and more storage!</description>
+                <long-description>Experience unparalleled visual clarity with the Dell XPS 15. Powered by Intel Core i9 processor and NVIDIA RTX 4070 graphics, this laptop handles demanding workflows with ease. The 4K+ OLED display delivers true-to-life colors with deep blacks and brilliant whites. Thunderbolt 4 ports provide fast connectivity to all your peripherals. This updated model features 64GB of RAM and 2TB of storage.</long-description>
+                <prices>
+                    <!-- MODIFIED: Price reduced -->
+                    <price currency="USD" amount="1749.99" original="2199.99" valid-until="2024-03-15"/>
+                    <price currency="EUR" amount="1599.99"/>
+                    <price currency="GBP" amount="1449.99"/>
+                    <price currency="JPY" amount="225000"/>
+                </prices>
+                <inventory>
+                    <available>true</available>
+                    <!-- MODIFIED: Quantity changed -->
+                    <quantity>98</quantity>
+                    <warehouses>
+                        <warehouse code="US-WEST-01" location="California, USA" quantity="50"/>
+                        <warehouse code="US-EAST-01" location="New Jersey, USA" quantity="48"/>
+                    </warehouses>
+                    <low-stock-threshold>20</low-stock-threshold>
+                    <backorder-allowed>
+                        <enabled>true</enabled>
+                        <lead-time-days>14</lead-time-days>
+                    </backorder-allowed>
+                </inventory>
+                <specs>
+                    <!-- MODIFIED: Upgraded specs -->
+                    <spec name="processor">Intel Core i9-13900H (24-core, up to 5.4 GHz)</spec>
+                    <spec name="memory">64GB DDR5 5600MHz</spec>
+                    <spec name="storage">2TB NVMe SSD Gen4</spec>
+                    <spec name="display">15.6" OLED 3456 x 2160 60Hz</spec>
+                    <spec name="graphics">NVIDIA GeForce RTX 4070 12GB GDDR6X</spec>
+                    <spec name="battery">86WHr, up to 12 hours</spec>
+                    <spec name="weight">4.23 lbs (1.92 kg)</spec>
+                    <spec name="dimensions">0.71" x 13.56" x 9.06" (H x W x D)</spec>
+                    <spec name="os">Windows 11 Pro</spec>
+                    <spec name="wireless">Wi-Fi 6E, Bluetooth 5.3</spec>
+                    <spec name="ports">3x Thunderbolt 4, 1x USB 3.2 Gen 2, 1x SD card slot, 1x headphone jack</spec>
+                    <!-- ADDED: New spec -->
+                    <spec name="webcam">1080p FHD IR camera</spec>
+                </specs>
+                <images>
+                    <image type="front" url="https://cdn.example.com/products/dell-xps15-front.jpg" width="800" height="600" primary="true"/>
+                    <image type="side" url="https://cdn.example.com/products/dell-xps15-side.jpg" width="800" height="600"/>
+                    <image type="back" url="https://cdn.example.com/products/dell-xps15-back.jpg" width="800" height="600"/>
+                    <image type="studio" url="https://cdn.example.com/products/dell-xps15-studio.jpg" width="1920" height="1080"/>
+                </images>
+                <reviews>
+                    <summary average-rating="4.8" total-reviews="2890"/>
+                    <distribution>
+                        <rating stars="5" count="2145"/>
+                        <rating stars="4" count="580"/>
+                        <rating stars="3" count="125"/>
+                        <rating stars="2" count="32"/>
+                        <rating stars="1" count="8"/>
+                    </distribution>
+                </reviews>
+                <tags>
+                    <tag>gaming</tag>
+                    <tag>creator</tag>
+                    <tag>business</tag>
+                    <tag>oled</tag>
+                    <tag>thunderbolt</tag>
+                    <!-- ADDED: New tags -->
+                    <tag>ai-ready</tag>
+                    <tag>dream-color</tag>
+                </tags>
+                <attributes>
+                    <attribute name="color" type="color">Silver</attribute>
+                    <attribute name="material">Aluminum</attribute>
+                    <attribute name="warranty" type="warranty">1 Year</attribute>
+                    <attribute name="origin">China</attribute>
+                    <attribute name="shipping-weight">5.5 lbs</attribute>
+                </attributes>
+                <related-products>
+                    <product id="PRD-002" relation="alternative"/>
+                    <product id="PRD-003" relation="accessory"/>
+                </related-products>
+            </product>
+
+            <!-- Product 2: MODIFIED - M3 chip upgrade, price increase, tier change -->
+            <product id="PRD-002" sku="APPLE-MBP16-2024" category-id="CAT-001-001" featured="true" status="active" created="2023-10-01T09:00:00Z" updated="2024-01-19T16:45:00Z">
+                <name>MacBook Pro 16</name>
+                <brand>Apple</brand>
+                <!-- MODIFIED: Description with M3 -->
+                <description>The most powerful MacBook Pro ever. With M3 Max chip, up to 96GB unified memory, and 8TB storage. Now with M3 Pro chip option.</description>
+                <prices>
+                    <!-- MODIFIED: Price increased -->
+                    <price currency="USD" amount="2699.99" valid-until="2024-04-30"/>
+                    <price currency="EUR" amount="2499.99"/>
+                    <price currency="GBP" amount="2299.99"/>
+                </prices>
+                <inventory>
+                    <available>true</available>
+                    <quantity>112</quantity>
+                    <warehouses>
+                        <warehouse code="US-WEST-01" location="California, USA" quantity="55"/>
+                        <warehouse code="US-EAST-01" location="New Jersey, USA" quantity="40"/>
+                        <warehouse code="EU-WEST-01" location="Germany" quantity="17"/>
+                    </warehouses>
+                </inventory>
+                <specs>
+                    <!-- MODIFIED: M3 Max chip -->
+                    <spec name="processor">Apple M3 Max (16-core CPU, 40-core GPU, 16-core Neural Engine)</spec>
+                    <spec name="memory">96GB Unified Memory</spec>
+                    <spec name="storage">2TB SSD</spec>
+                    <spec name="display">16.2" Liquid Retina XDR 3456 x 2234 120Hz ProMotion</spec>
+                    <spec name="battery">100WHr, up to 22 hours</spec>
+                    <spec name="weight">4.8 lbs (2.17 kg)</spec>
+                    <spec name="os">macOS Sonoma</spec>
+                </specs>
+                <reviews>
+                    <summary average-rating="4.9" total-reviews="6120"/>
+                    <distribution>
+                        <rating stars="5" count="5280"/>
+                        <rating stars="4" count="650"/>
+                        <rating stars="3" count="140"/>
+                        <rating stars="2" count="40"/>
+                        <rating stars="1" count="10"/>
+                    </distribution>
+                </reviews>
+                <tags>
+                    <tag>creator</tag>
+                    <tag>professional</tag>
+                    <tag>video-editing</tag>
+                    <!-- MODIFIED: New tags -->
+                    <tag>m3-chip</tag>
+                    <tag>pro-motion</tag>
+                </tags>
+            </product>
+
+            <!-- Product 3: MODIFIED - Price reduced, more inventory, new tag -->
+            <product id="PRD-003" sku="SAM-S24U-256" category-id="CAT-001-002" featured="true" status="active" created="2023-09-20T08:00:00Z" updated="2024-01-19T11:20:00Z">
+                <name>Samsung Galaxy S24 Ultra</name>
+                <brand>Samsung</brand>
+                <description>Galaxy AI is here. Search like never before, icons get a new look, and enjoy a language fluid experience.</description>
+                <prices>
+                    <!-- MODIFIED: Price reduced -->
+                    <price currency="USD" amount="1099.99" original="1299.99" valid-until="2024-02-14"/>
+                    <price currency="EUR" amount="999.99"/>
+                    <price currency="GBP" amount="899.99"/>
+                </prices>
+                <inventory>
+                    <available>true</available>
+                    <!-- MODIFIED: Increased quantity -->
+                    <quantity>580</quantity>
+                    <warehouses>
+                        <warehouse code="US-WEST-01" quantity="200"/>
+                        <warehouse code="US-EAST-01" quantity="180"/>
+                        <warehouse code="US-CENTRAL-01" quantity="120"/>
+                        <!-- ADDED: New warehouse -->
+                        <warehouse code="US-EAST-02" location="Florida, USA" quantity="80"/>
+                    </warehouses>
+                </inventory>
+                <specs>
+                    <spec name="processor">Snapdragon 8 Gen 3 for Galaxy</spec>
+                    <spec name="memory">12GB RAM</spec>
+                    <spec name="storage">256GB UFS 4.0</spec>
+                    <spec name="display">6.8" Dynamic AMOLED 2X 1440 x 3120 1-120Hz</spec>
+                    <spec name="camera">200MP + 12MP + 10MP + 12MP (100x Space Zoom)</spec>
+                    <spec name="battery">5000mAh</spec>
+                    <spec name="charging">45W wired, 15W wireless</spec>
+                    <spec name="water-resistance">IP68</spec>
+                </specs>
+                <reviews>
+                    <summary average-rating="4.8" total-reviews="13890"/>
+                </reviews>
+                <tags>
+                    <tag>5g</tag>
+                    <tag>samsung</tag>
+                    <tag>android</tag>
+                    <tag>camera</tag>
+                    <tag>s-pen</tag>
+                    <tag>waterproof</tag>
+                    <!-- ADDED: New tag -->
+                    <tag>galaxy-ai</tag>
+                </tags>
+                <description><p>Ultra's <b>Note series</b> capabilities are legendary.</p></description>
+            </product>
+
+            <!-- DELETED: PRD-004 removed - wireless mouse removed from catalog -->
+
+            <!-- Product 5: MODIFIED - New price -->
+            <product id="PRD-005" sku="SONY-PS5-SLIM" category-id="CAT-001-006" featured="true" status="active" created="2023-11-01T10:00:00Z" updated="2024-01-16T15:30:00Z">
+                <name>PlayStation 5 Slim</name>
+                <brand>Sony</brand>
+                <description>Experience lightning-fast loading with an ultra-high speed SSD, deeper immersion with support for haptic feedback.</description>
+                <prices>
+                    <!-- MODIFIED: Lower price -->
+                    <price currency="USD" amount="399.99" original="499.99"/>
+                    <price currency="EUR" amount="379.99"/>
+                    <price currency="GBP" amount="349.99"/>
+                </prices>
+                <inventory>
+                    <available>true</available>
+                    <quantity>645</quantity>
+                </inventory>
+                <specs>
+                    <spec name="storage">1TB SSD</spec>
+                    <spec name="output">4K 120Hz, 8K</spec>
+                    <spec name="ray-tracing">Yes</spec>
+                    <spec name="tempest">3D Audio</spec>
+                </specs>
+                <reviews>
+                    <summary average-rating="4.9" total-reviews="16875"/>
+                </reviews>
+                <tags>
+                    <tag>gaming</tag>
+                    <tag>console</tag>
+                    <tag>playstation</tag>
+                    <tag>sony</tag>
+                </tags>
+            </product>
+
+            <!-- Product 6: MODIFIED - Low stock status removed, price changed -->
+            <product id="PRD-006" sku="SONY-WH1000XM5" category-id="CAT-001-004" featured="false" status="active" created="2023-06-15T11:00:00Z" updated="2024-01-18T10:00:00Z">
+                <name>Sony WH-1000XM5</name>
+                <brand>Sony</brand>
+                <description>Industry-leading noise cancellation with two processors controlling 8 microphones.</description>
+                <prices>
+                    <!-- MODIFIED: Lower price -->
+                    <price currency="USD" amount="299.99"/>
+                </prices>
+                <inventory>
+                    <available>true</available>
+                    <!-- MODIFIED: Back in stock -->
+                    <quantity>145</quantity>
+                </inventory>
+                <specs>
+                    <spec name="battery">Up to 30 hours (ANC on), 50 hours (ANC off)</spec>
+                    <spec name="weight">250g</spec>
+                </specs>
+                <reviews>
+                    <summary average-rating="4.8" total-reviews="7245"/>
+                </reviews>
+            </product>
+
+            <!-- Product 7: MODIFIED - Price drop -->
+            <product id="PRD-007" sku="AAPL-WATCH-U2" category-id="CAT-001" featured="true" status="active" created="2023-09-15T08:30:00Z" updated="2024-01-17T13:00:00Z">
+                <name>Apple Watch Series 9</name>
+                <brand>Apple</brand>
+                <description>More watches. More fitness. More innovation. The powerful personal device with advanced health features.</description>
+                <prices>
+                    <!-- MODIFIED: Price drop -->
+                    <price currency="USD" amount="349.99"/>
+                    <price currency="EUR" amount="329.99"/>
+                </prices>
+                <inventory>
+                    <available>true</available>
+                    <quantity>312</quantity>
+                </inventory>
+                <specs>
+                    <spec name="display">Always-On Retina</spec>
+                    <spec name="water-resistance">WR50</spec>
+                    <!-- ADDED: New spec -->
+                    <spec name="chip">S9 SiP</spec>
+                </specs>
+                <reviews>
+                    <summary average-rating="4.7" total-reviews="10125"/>
+                </reviews>
+            </product>
+
+            <!-- Product 8: MODIFIED - Brand change, price increase, now featured -->
+            <product id="PRD-008" sku="PREM-EARBUDS-U" category-id="CAT-001-002" featured="true" status="active" created="2024-01-10T10:00:00Z" updated="2024-01-19T14:30:00Z">
+                <!-- MODIFIED: Brand changed, name changed -->
+                <name>Premium Wireless Earbuds Pro</name>
+                <brand>PremiumAudio</brand>
+                <description>Premium wireless earbuds with active noise cancellation and transparency mode. Enhanced bass and 40-hour battery life.</description>
+                <prices>
+                    <!-- MODIFIED: Higher price -->
+                    <price currency="USD" amount="129.99"/>
+                </prices>
+                <inventory>
+                    <available>true</available>
+                    <quantity>750</quantity>
+                </inventory>
+                <specs>
+                    <spec name="battery">Up to 12 hoursANC, 40 hours with charging case</spec>
+                    <spec name="drivers">12mm dynamic drivers</spec>
+                    <spec name="codecs">AAC, aptX, LDAC, SBC</spec>
+                    <!-- ADDED: New specs -->
+                    <spec name="water-resistance">IPX4</spec>
+                    <spec name="fast-charging">10 min = 4 hours</spec>
+                </specs>
+                <reviews>
+                    <summary average-rating="4.5" total-reviews="890"/>
+                </reviews>
+                <tags>
+                    <tag>wireless</tag>
+                    <tag>audio</tag>
+                    <tag>noise-cancelling</tag>
+                    <tag>premium</tag>
+                    <!-- ADDED: New tags -->
+                    <tag>transparency</tag>
+                    <tag>sports</tag>
+                </tags>
+            </product>
+
+            <!-- ADDED: New Product 9 -->
+            <product id="PRD-009" sku="MSFT-SURF-PRO" category-id="CAT-001-001" featured="true" status="active" created="2024-01-05T00:00:00Z" updated="2024-01-19T09:00:00Z">
+                <name>Microsoft Surface Pro 9</name>
+                <brand>Microsoft</brand>
+                <description>The tablet that can replace your laptop. Ultimate versatility with laptop-class performance.</description>
+                <prices>
+                    <price currency="USD" amount="1499.99"/>
+                    <price currency="EUR" amount="1399.99"/>
+                </prices>
+                <inventory>
+                    <available>true</available>
+                    <quantity>234</quantity>
+                </inventory>
+                <specs>
+                    <spec name="processor">Intel Core i5-1235U</spec>
+                    <spec name="memory">16GB</spec>
+                    <spec name="storage">256GB SSD</spec>
+                    <spec name="display">13" PixelSense Flow 2880 x 1920 120Hz</spec>
+                </specs>
+                <reviews>
+                    <summary average-rating="4.6" total-reviews="567"/>
+                </reviews>
+                <tags>
+                    <tag>2-in-1</tag>
+                    <tag>tablet</tag>
+                    <tag>microsoft</tag>
+                    <tag>detachable</tag>
+                </tags>
+            </product>
+
+            <!-- ADDED: New Product 10 -->
+            <product id="PRD-010" sku="META-QUEST-3" category-id="CAT-001-006" featured="true" status="active" created="2024-01-08T00:00:00Z" updated="2024-01-19T12:00:00Z">
+                <name>Meta Quest 3</name>
+                <brand>Meta</brand>
+                <description>The first mass-market mixed reality headset. Experience immersive VR and MR content.</description>
+                <prices>
+                    <price currency="USD" amount="499.99"/>
+                    <price currency="EUR" amount="459.99"/>
+                </prices>
+                <inventory>
+                    <available>true</available>
+                    <quantity>1890</quantity>
+                </inventory>
+                <specs>
+                    <spec name="chipset">Snapdragon XR2 Gen 2</spec>
+                    <spec name="display">2064 x 2064 pixels per eye</spec>
+                    <spec name="refresh-rate">90Hz</spec>
+                    <spec name="field-of-view">110 degrees</spec>
+                    <spec name="weight">515g</spec>
+                </specs>
+                <reviews>
+                    <summary average-rating="4.4" total-reviews="2345"/>
+                </reviews>
+                <tags>
+                    <tag>vr</tag>
+                    <tag>mixed-reality</tag>
+                    <tag>metaverse</tag>
+                    <tag>gaming</tag>
+                </tags>
+            </product>
+
+            <!-- ADDED: New Product 11 -->
+            <product id="PRD-011" sku="BOS-TS25" category-id="CAT-005" featured="false" status="active" created="2024-01-12T00:00:00Z" updated="2024-01-19T08:00:00Z">
+                <name>Bosch Series 25 800 Series</name>
+                <brand>Bosch</brand>
+                <description>Ultra-quiet performance. The perfect choice for large and demanding projects.</description>
+                <prices>
+                    <price currency="USD" amount="799.99"/>
+                </prices>
+                <inventory>
+                    <available>true</available>
+                    <quantity>45</quantity>
+                </inventory>
+                <specs>
+                    <spec name="capacity">25 gallons</spec>
+                    <spec name="sound-pressure">62 dBA</spec>
+                    <spec name="vibration">0.4 in/s</spec>
+                </specs>
+                <reviews>
+                    <summary average-rating="4.7" total-reviews="234"/>
+                </reviews>
+                <tags>
+                    <tag>tool</tag>
+                    <tag>hardware</tag>
+                    <tag>hardware</tag>
+                </tags>
+            </product>
+        </products>
+    </catalog>
+
+    <!-- =============================================
+         CUSTOMERS SECTION - MODIFIED
+    ============================================= -->
+    <customers>
+        <!-- Customer 1: MODIFIED - Tier upgraded, new order added -->
+        <customer id="CUST-001" email="john.smith@example.com" tier="platinum" status="active" joined="2019-03-15T00:00:00Z" last-login="2024-01-20T09:22:15Z">
+            <profile>
+                <first-name>John</first-name>
+                <last-name>Smith</last-name>
+                <display-name>John S.</display-name>
+                <avatar>https://cdn.example.com/avatars/john-smith.jpg</avatar>
+                <phone>+1-555-0123</phone>
+                <preferences>
+                    <preference name="language" value="en-US"/>
+                    <preference name="currency" value="USD"/>
+                    <preference name="newsletter" value="true"/>
+                    <preference name="sms-notifications" value="true"/>
+                    <preference name="promotional-emails" value="true"/>
+                </preferences>
+            </profile>
+            <addresses>
+                <address id="ADDR-001" type="billing" default="true">
+                    <name>John Smith</name>
+                    <street>123 Main Street</street>
+                    <street>Apt 4B</street>
+                    <city>New York</city>
+                    <state>NY</state>
+                    <postal-code>10001</postal-code>
+                    <country>US</country>
+                </address>
+                <address id="ADDR-002" type="shipping" default="true">
+                    <name>John Smith</name>
+                    <street>456 Shipping Lane</street>
+                    <city>New York</city>
+                    <state>NY</state>
+                    <postal-code>10002</postal-code>
+                    <country>US</country>
+                    <instructions>Leave at door</instructions>
+                </address>
+            </addresses>
+            <orders>
+                <order id="ORD-001" date="2023-08-20T10:30:00Z" status="delivered" total="2459.98" items="3">
+                    <items>
+                        <item product-id="PRD-001" quantity="1" price="1899.99" status="delivered"/>
+                        <item product-id="PRD-004" quantity="1" price="99.99" status="delivered"/>
+                        <item product-id="PRD-006" quantity="1" price="460.00" status="delivered"/>
+                    </items>
+                    <shipping>
+                        <method>express</method>
+                        <carrier>FedEx</carrier>
+                        <tracking>123456789012</tracking>
+                        <shipped-date>2023-08-20T14:00:00Z</shipped-date>
+                        <delivered-date>2023-08-22T10:30:00Z</delivered-date>
+                    </shipping>
+                    <payment>
+                        <method>credit-card</method>
+                        <card-type>Visa</card-type>
+                        <last-four>4242</last-four>
+                    </payment>
+                </order>
+                <order id="ORD-002" date="2023-11-05T15:45:00Z" status="delivered" total="129.99" items="1">
+                    <items>
+                        <item product-id="PRD-004" quantity="1" price="129.99" status="delivered"/>
+                    </items>
+                </order>
+                <!-- MODIFIED: Order status updated -->
+                <order id="ORD-003" date="2024-01-10T09:15:00Z" status="shipped" total="2699.99" items="2">
+                    <items>
+                        <item product-id="PRD-002" quantity="1" price="2699.99" status="shipped"/>
+                        <item product-id="PRD-006" quantity="1" price="200.00" status="shipped"/>
+                    </items>
+                </order>
+                <!-- ADDED: New order -->
+                <order id="ORD-005" date="2024-01-19T16:45:00Z" status="processing" total="349.99" items="1">
+                    <items>
+                        <item product-id="PRD-007" quantity="1" price="349.99" status="processing"/>
+                    </items>
+                </order>
+            </orders>
+            <loyalty>
+                <points balance="18950"/>
+                <tier>platinum</tier>
+                <benefits>
+                    <benefit>free-shipping</benefit>
+                    <benefit>exclusive-deals</benefit>
+                    <benefit>priority-support</benefit>
+                    <benefit>early-access</benefit>
+                    <!-- ADDED: New benefit -->
+                    <benefit>vip-events</benefit>
+                </benefits>
+            </loyalty>
+            <wishlist>
+                <product id="PRD-003" added="2024-01-05T10:00:00Z"/>
+                <product id="PRD-005" added="2024-01-08T14:30:00Z"/>
+                <!-- ADDED: New wishlist item -->
+                <product id="PRD-009" added="2024-01-18T11:15:00Z"/>
+            </wishlist>
+        </customer>
+
+        <!-- Customer 2: DELETED - Removed from database -->
+
+        <!-- ADDED: New Customer 4 -->
+        <customer id="CUST-004" email="emily.johnson@example.com" tier="silver" status="active" joined="2023-11-30T00:00:00Z" last-login="2024-01-19T14:50:00Z">
+            <profile>
+                <first-name>Emily</first-name>
+                <last-name>Johnson</last-name>
+                <display-name>Emily J.</display-name>
+                <avatar>https://cdn.example.com/avatars/emily-johnson.jpg</avatar>
+                <phone>+1-555-9876</phone>
+                <preferences>
+                    <preference name="language" value="en-US"/>
+                    <preference name="currency" value="USD"/>
+                    <preference name="newsletter" value="true"/>
+                    <preference name="sms-notifications" value="false"/>
+                    <preference name="promotional-emails" value="true"/>
+                </preferences>
+            </profile>
+            <addresses>
+                <address id="ADDR-003" type="billing" default="true">
+                    <name>Emily Johnson</name>
+                    <street>789 Oak Avenue</street>
+                    <city>San Francisco</city>
+                    <state>CA</state>
+                    <postal-code>94102</postal-code>
+                    <country>US</country>
+                </address>
+                <address id="ADDR-004" type="shipping" default="true">
+                    <name>Emily Johnson</name>
+                    <street>789 Oak Avenue</street>
+                    <city>San Francisco</city>
+                    <state>CA</state>
+                    <postal-code>94102</postal-code>
+                    <country>US</country>
+                </address>
+            </addresses>
+            <orders>
+                <order id="ORD-006" date="2024-01-15T11:30:00Z" status="delivered" total="1099.99" items="1">
+                    <items>
+                        <item product-id="PRD-003" quantity="1" price="1099.99" status="delivered"/>
+                    </items>
+                </order>
+            </orders>
+            <loyalty>
+                <points balance="4500"/>
+                <tier>silver</tier>
+            </loyalty>
+            <wishlist>
+                <product id="PRD-009" added="2024-01-16T09:20:00Z"/>
+            </wishlist>
+        </customer>
+    </customers>
+
+    <!-- =============================================
+         PROMOTIONS SECTION - MODIFIED
+    ============================================= -->
+    <promotions>
+        <!-- MODIFIED: Promotion updated -->
+        <promotion id="PROMO-001" type="seasonal" code="SPRING2024" active="true" priority="high">
+            <name>Spring Sale 2024</name>
+            <description>Up to 35% off on selected electronics and accessories. Limited time offer.</description>
+            <terms>Cannot be combined with other offers. Excludes Apple products.</terms>
+            <!-- MODIFIED: Discount increased -->
+            <discount type="percentage" value="35"/>
+            <categories>
+                <category id="CAT-001-001"/>
+                <category id="CAT-001-004"/>
+                <category id="CAT-001-006"/>
+            </categories>
+            <!-- MODIFIED: Extended dates -->
+            <valid-from>2024-03-01T00:00:00Z</valid-from>
+            <valid-to>2024-04-15T23:59:59Z</valid-to>
+            <coupon-codes>
+                <code>SPRING35</code>
+                <code>SAVE35</code>
+                <!-- ADDED: New coupon -->
+                <code>FLASHSALE</code>
+            </coupon-codes>
+        </promotion>
+
+        <!-- DELETED: PROMO-002 removed -->
+
+        <!-- MODIFIED: Bundle promotion updated -->
+        <promotion id="PROMO-003" type="bundle" code="BUNDLE-DEAL" active="true" priority="medium">
+            <name>Laptop + Accessories Bundle</name>
+            <description>Save $100 when you buy a laptop and wireless accessories together.</description>
+            <!-- MODIFIED: Higher discount -->
+            <discount type="fixed" value="100.00"/>
+            <products>
+                <product id="PRD-001"/>
+                <product id="PRD-004"/>
+                <product id="PRD-006"/>
+            </products>
+        </promotion>
+
+        <!-- ADDED: New promotion -->
+        <promotion id="PROMO-004" type="flash" code="FLASH24" active="true" priority="high">
+            <name>Flash Sale - 24 Hours Only</name>
+            <description>25% off all VR headsets this weekend only. Limited stock available.</description>
+            <discount type="percentage" value="25"/>
+            <categories>
+                <category id="CAT-001-006"/>
+            </categories>
+            <valid-from>2024-01-20T00:00:00Z</valid-from>
+            <valid-to>2024-01-21T23:59:59Z</valid-to>
+        </promotion>
+    </promotions>
+</ecommerce-platform>

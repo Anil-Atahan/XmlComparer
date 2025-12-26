@@ -1,0 +1,29 @@
+# Build outputs
+bin/
+obj/
+.vs/
+
+# IDE files
+*.user
+*.suo
+
+# Build artifacts
+*.nupkg
+*.pdb
+
+# Test outputs
+test*.html
+diff.html
+
+# Diff outputs
+outputs/
+*.diff.html
+
+# Docker
+ms-persist.xml
+
+# Demo/sample outputs (keeping sample XMLs)
+demo_*.xml
+
+# BenchmarkDotNet artifacts
+BenchmarkDotNet.Artifacts/

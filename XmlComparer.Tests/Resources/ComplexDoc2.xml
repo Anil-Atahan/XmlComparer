@@ -1,0 +1,42 @@
+<company xmlns="urn:company" name="Acme Corporation" version="1.1">
+  <metadata>
+    <created>2024-01-01</created>
+    <owner>Platform</owner>
+  </metadata>
+  <departments>
+    <department id="ENG">
+      <name>Engineering</name>
+      <employees>
+        <employee id="E200" role="Lead">
+          <fullName>Carol Diaz</fullName>
+          <projects>
+            <project code="ENG-01" status="active" />
+            <project code="ENG-03" status="active" />
+          </projects>
+        </employee>
+        <employee id="E201" role="Senior Developer">
+          <fullName>Daniel Wu</fullName>
+        </employee>
+      </employees>
+    </department>
+    <department id="HR">
+      <name>People Operations</name>
+      <employees>
+        <employee id="E100" role="Manager">
+          <fullName>Alice Smith</fullName>
+        </employee>
+        <employee id="E101" role="Recruiter">
+          <fullName>Bob Lane</fullName>
+          <projects>
+            <project code="HR-02" status="active" />
+          </projects>
+        </employee>
+      </employees>
+    </department>
+  </departments>
+  <settings>
+    <setting key="Notifications">Disabled</setting>
+    <setting key="Theme">Dark</setting>
+    <setting key="Retention">365</setting>
+  </settings>
+</company>
