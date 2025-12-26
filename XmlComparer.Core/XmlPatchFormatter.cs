@@ -257,14 +257,22 @@ namespace XmlComparer.Core
 
             var operation = new XmlPatchOperation
             {
+#if NETSTANDARD2_0
+                Type = (PatchOperationType)Enum.Parse(typeof(PatchOperationType), typeAttr.Value),
+#else
                 Type = Enum.Parse<PatchOperationType>(typeAttr.Value),
+#endif
                 TargetPath = pathAttr.Value
             };
 
             var positionAttr = element.Attribute("position");
             if (positionAttr != null)
             {
+#if NETSTANDARD2_0
+                operation.Position = (PatchPosition)Enum.Parse(typeof(PatchPosition), positionAttr.Value);
+#else
                 operation.Position = Enum.Parse<PatchPosition>(positionAttr.Value);
+#endif
             }
 
             var lineAttr = element.Attribute("line");

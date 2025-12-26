@@ -129,9 +129,15 @@ namespace XmlComparer.Core
                 }
             };
 
+#if NETSTANDARD2_0
+            using var stream = File.OpenRead(xmlPath);
+            using var reader = XmlReader.Create(stream, settings);
+            while (reader.Read()) { /* Read through document to trigger validation */ }
+#else
             await using var stream = File.OpenRead(xmlPath);
             using var reader = XmlReader.Create(stream, settings);
             while (await reader.ReadAsync()) { /* Read through document to trigger validation */ }
+#endif
             return result;
         }
 

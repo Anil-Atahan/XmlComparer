@@ -87,6 +87,16 @@ namespace XmlComparer.Core
             var settings = XmlSecuritySettings.CreateSecureReaderSettings();
             settings.Async = true;
 
+#if NETSTANDARD2_0
+            using var originalStream = File.OpenRead(originalXmlPath);
+            using var newStream = File.OpenRead(newXmlPath);
+
+            using var originalReader = XmlReader.Create(originalStream, settings);
+            using var newReader = XmlReader.Create(newStream, settings);
+
+            var originalDoc = XDocument.Load(originalReader, LoadOptions.None);
+            var newDoc = XDocument.Load(newReader, LoadOptions.None);
+#else
             await using var originalStream = File.OpenRead(originalXmlPath);
             await using var newStream = File.OpenRead(newXmlPath);
 
@@ -95,6 +105,7 @@ namespace XmlComparer.Core
 
             var originalDoc = await XDocument.LoadAsync(originalReader, LoadOptions.None, cancellationToken);
             var newDoc = await XDocument.LoadAsync(newReader, LoadOptions.None, cancellationToken);
+#endif
 
             CleanUpDocument(originalDoc);
             CleanUpDocument(newDoc);
@@ -145,8 +156,13 @@ namespace XmlComparer.Core
             using var originalReader = XmlReader.Create(new StringReader(originalXmlContent), settings);
             using var newReader = XmlReader.Create(new StringReader(newXmlContent), settings);
 
+#if NETSTANDARD2_0
+            var originalDoc = XDocument.Load(originalReader, LoadOptions.None);
+            var newDoc = XDocument.Load(newReader, LoadOptions.None);
+#else
             var originalDoc = await XDocument.LoadAsync(originalReader, LoadOptions.None, cancellationToken);
             var newDoc = await XDocument.LoadAsync(newReader, LoadOptions.None, cancellationToken);
+#endif
 
             CleanUpDocument(originalDoc);
             CleanUpDocument(newDoc);
